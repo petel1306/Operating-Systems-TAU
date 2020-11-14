@@ -22,7 +22,7 @@ inline uint64_t is_valid_pte(uint64_t *pte_ptr)
  */
 inline uint64_t create_pte(uint64_t frame)
 {
-    return (frame << OFFSET_BITS) + VALID_MASK;
+    return (frame << OFFSET_BITS) || VALID_MASK;
 }
 
 /**
@@ -48,20 +48,19 @@ inline uint64_t get_page_number(uint64_t *pte_ptr)
 uint64_t *page_walk(uint64_t pt, uint64_t vpn, int insert_flag)
 {
     uint64_t *pte_ptr;
-    uint64_t pte_address;
     uint64_t index;
 
-    unsigned int mask_shift = SYMBOL_BITS * PT_LEVELS + OFFSET_BITS;
+    unsigned int mask_shift = SYMBOL_BITS * (PT_LEVELS - 1);
 
     for (int i = 0; i < PT_LEVELS; i++)
     {
         // Obtain the symbol from the vpn at each pt level, and slide the "mask window" to the right.
-        mask_shift -= SYMBOL_BITS;
         index = (vpn && (SYMBOL_MASK << mask_shift)) >> mask_shift;
+        mask_shift -= SYMBOL_BITS;
 
         // Get the page table entry
-        pte_address = ((pt << SYMBOL_BITS) + index) * PTE_BYTES;
-        pte_ptr = (uint64_t *)phys_to_virt(pte_address);
+        pte_ptr = (uint64_t *)phys_to_virt(pt << OFFSET_BITS);
+        pte_ptr += index;
 
         // Check for mapping
         if (!is_valid_pte(pte_ptr))
