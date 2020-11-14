@@ -4,6 +4,7 @@
 #define PT_LEVELS 5 // 5 levels of PTE
 #define SYMBOL_BITS 9
 #define OFFSET_BITS 12
+#define PTE_BYTES 3
 
 const uint64_t SYMBOL_MASK = 0x1FF; // mask of 9 lower bits
 const uint64_t VALID_MASK = 0x1;    // mask of the LSB
@@ -47,6 +48,7 @@ inline uint64_t get_page_number(uint64_t *pte_ptr)
 uint64_t *page_walk(uint64_t pt, uint64_t vpn, int insert_flag)
 {
     uint64_t *pte_ptr;
+    uint64_t pte_address;
     uint64_t index;
 
     // Remove page offset.
@@ -59,7 +61,8 @@ uint64_t *page_walk(uint64_t pt, uint64_t vpn, int insert_flag)
         vpn = vpn >> SYMBOL_BITS;
 
         // Get the page table entry
-        pte_ptr = (uint64_t *)phys_to_virt((pt << OFFSET_BITS) + index);
+        pte_address = ((pt << SYMBOL_BITS) + index) << PTE_BYTES;
+        pte_ptr = (uint64_t *)phys_to_virt(pte_address);
 
         // Check for mapping
         if (!is_valid_pte(pte_ptr))
@@ -85,7 +88,7 @@ uint64_t *page_walk(uint64_t pt, uint64_t vpn, int insert_flag)
         // Update the pt to one level ahead
         pt = get_page_number(pte_ptr);
     }
-    return pte_ptr;// Returns a pte leaf that represents the actual mapping of the vpn
+    return pte_ptr; // Returns a pte leaf that represents the actual mapping of the vpn
 }
 
 void page_table_update(uint64_t pt, uint64_t vpn, uint64_t ppn)
