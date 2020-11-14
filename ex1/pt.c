@@ -22,7 +22,7 @@ enum walk_mode
  */
 inline uint64_t is_valid_pte(uint64_t pte)
 {
-    return pte && VALID_MASK;
+    return pte & VALID_MASK;
 }
 
 /**
@@ -44,16 +44,8 @@ inline uint64_t get_frame_number(uint64_t pte)
 int get_index(uint64_t vpn, int level)
 {
     int offset = SYMBOL_BITS * (PT_LEVELS - (level + 1));
-    return (vpn >> offset) && SYMBOL_MASK;
+    return (vpn >> offset) & SYMBOL_MASK;
 }
-
-// /**
-//  * Invalidates an existent pte
-//  */
-// inline void invalidate_pte(uint64_t *pte_ptr)
-// {
-//     *pte_ptr = *pte_ptr && (!VALID_MASK);
-// }
 
 /**
  * Returns a pointer to a Page Table leaf (represents the actual mapping entry of a vpn to a ppn)
