@@ -4,7 +4,7 @@
 #define PT_LEVELS 5 // 5 levels of PTE
 #define SYMBOL_BITS 9
 #define OFFSET_BITS 12
-#define PTE_BYTES 3
+#define PTE_BYTES 8
 
 const uint64_t SYMBOL_MASK = 0x1FF; // mask of 9 lower bits
 const uint64_t VALID_MASK = 0x1;    // mask of the LSB
@@ -51,17 +51,16 @@ uint64_t *page_walk(uint64_t pt, uint64_t vpn, int insert_flag)
     uint64_t pte_address;
     uint64_t index;
 
-    // Remove page offset.
-    vpn = vpn >> OFFSET_BITS;
+    unsigned int mask_shift = SYMBOL_BITS * PT_LEVELS + OFFSET_BITS;
 
     for (int i = 0; i < PT_LEVELS; i++)
     {
-        // Get the symbol at each level from the vpn, and "slide the mask window".
-        index = vpn && SYMBOL_MASK;
-        vpn = vpn >> SYMBOL_BITS;
+        // Obtain the symbol from the vpn at each pt level, and slide the "mask window" to the right.
+        mask_shift -= SYMBOL_BITS;
+        index = (vpn && (SYMBOL_MASK << mask_shift)) >> mask_shift;
 
         // Get the page table entry
-        pte_address = ((pt << SYMBOL_BITS) + index) << PTE_BYTES;
+        pte_address = ((pt << SYMBOL_BITS) + index) * PTE_BYTES;
         pte_ptr = (uint64_t *)phys_to_virt(pte_address);
 
         // Check for mapping
