@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include "os.h"
+#include <stdio.h>
 
 // 5 levels of PTE
 #define PT_LEVELS 5
@@ -20,7 +20,7 @@ enum walk_mode
 /**
  * Returns whether a pte (= page table entry) is valid.
  */
-inline uint64_t is_valid_pte(uint64_t pte)
+uint64_t is_valid_pte(uint64_t pte)
 {
     return pte & VALID_MASK;
 }
@@ -28,7 +28,7 @@ inline uint64_t is_valid_pte(uint64_t pte)
 /**
  * Creates a pte (= page table entry) structure out of a page frame number.
  */
-inline uint64_t create_pte(uint64_t frame_number)
+uint64_t create_pte(uint64_t frame_number)
 {
     return (frame_number << OFFSET_BITS) + VALID_MASK;
 }
@@ -36,7 +36,7 @@ inline uint64_t create_pte(uint64_t frame_number)
 /**
  * Gets the page number out of a pte (= page table entry).
  */
-inline uint64_t get_frame_number(uint64_t pte)
+uint64_t get_frame_number(uint64_t pte)
 {
     return pte >> OFFSET_BITS;
 }
