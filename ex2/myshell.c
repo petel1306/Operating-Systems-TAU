@@ -7,15 +7,13 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "myshell.h"
-
 #define SUCCESS 1
 #define FAIL 0
 
 #define EXEC_COMMAND(arglist, ...) execvp(arglist[0], arglist)
 
 #define WAITPID(pid, status)                                                                                           \
-    while (waitpid(pid, status, 0) == -1 && errno == EINTR)                                                            \
+    while (waitpid(pid, status, 0) == -1 && (errno == EINTR || errno == ECHILD))                                                            \
     {                                                                                                                  \
     }
 
@@ -41,10 +39,10 @@ int foreground_command(char **arglist)
     }
     else if (pid == 0)
     {
-        if (EXEC_COMMAND(arglist) == -1)
-        {
-            print_err("can not execute the command");
-        }
+        EXEC_COMMAND(arglist)
+		// Check for an error
+        print_err("can not execute the command");
+		exit(1);
     }
 
     // Waiting for sons to finish
@@ -65,10 +63,10 @@ int background_command(char **arglist)
     }
     else if (pid == 0)
     {
-        if (EXEC_COMMAND(arglist) == -1)
-        {
-            print_err("can not execute the command");
-        }
+        EXEC_COMMAND(arglist)
+		// Check for an error
+        print_err("can not execute the command");
+		exit(1);
     }
     // This time we doesn't wait for son the to finish.
     // We handle SIGCHLD for the child to be wait()ed when finished (asynchrony)
