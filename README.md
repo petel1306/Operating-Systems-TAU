@@ -9,7 +9,7 @@ In each directory you may find the guidelines (i.e. descripition of each assignm
 This course is ongoing and the git project keeps updating.
 
 
-You may find the course syllabus here:
+You may find the syllabus of the course here:
 https://www.ims.tau.ac.il/Tal/Syllabus/Syllabus_L.aspx?course=0368216201&year=2020&lang=HE
 
 
