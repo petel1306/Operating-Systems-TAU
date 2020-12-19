@@ -12,6 +12,7 @@
 #define DEVICE_RANGE_NAME "message_slot"
 #define BUF_LEN 128
 #define SLOT_AMOUNT 256
+#define DEFAULT_CHANNEL_ID 0
 
 #define SUCCESS 0
 
