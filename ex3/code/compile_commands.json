@@ -7,7 +7,21 @@
             "-Wall",
             "-std=c11",
             "-o",
-            "message_sender",
+            "message_reader.o",
+            "message_reader.c"
+        ],
+        "directory": "/home/student/os/ex3/code",
+        "file": "message_reader.c"
+    },
+    {
+        "arguments": [
+            "cc",
+            "-c",
+            "-O3",
+            "-Wall",
+            "-std=c11",
+            "-o",
+            "message_sender.o",
             "message_sender.c"
         ],
         "directory": "/home/student/os/ex3/code",
@@ -118,20 +132,6 @@
         ],
         "directory": "/usr/src/linux-headers-5.4.0-58-generic",
         "file": "../../../home/student/os/ex3/code/message_slot.c"
-    },
-    {
-        "arguments": [
-            "cc",
-            "-c",
-            "-O3",
-            "-Wall",
-            "-std=c11",
-            "-o",
-            "message_reader",
-            "message_reader.c"
-        ],
-        "directory": "/home/student/os/ex3/code",
-        "file": "message_reader.c"
     },
     {
         "arguments": [

@@ -28,8 +28,10 @@ unsigned int get_info_counter(void)
     return ++info_counter;
 }
 
-#define INFO(message, ...) printk("\n\nMessage_Slot-%d: " message "\n\n", get_info_counter(), ##__VA_ARGS__)
-#define SHOW(var, type) INFO(#var " = %" #type, var)
+// #define INFO(message, ...) printk("\n\nMessage_Slot-%d: " message "\n\n", get_info_counter(), ##__VA_ARGS__)
+#define INFO(...)
+// #define SHOW(var, type) INFO(#var " = %" #type, var)
+#define SHOW(...)
 // -================ Define database structures =================
 
 // Using Linux kernel lists
