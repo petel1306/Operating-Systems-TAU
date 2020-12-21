@@ -44,7 +44,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    printf("%d\n", slot);
     int message_size = read(slot, message, BUF_LEN);
     if (message_size == -1)
     {
