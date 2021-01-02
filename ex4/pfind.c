@@ -104,6 +104,7 @@ void err_thread_exit(void)
 {
     pthread_mutex_lock(&queue_mutex);
     active_threads--;
+    printf("Thread %lu : Exit on error\n", pthread_self()); // Debug print
     pthread_mutex_unlock(&queue_mutex);
 
     pthread_exit(THREAD_ERROR);
@@ -201,6 +202,8 @@ void scan_directory(const char *dir_path)
             enqueue(fpath);
             pthread_cond_signal(&queue_cond);
 
+            printf("Thread %lu : Enqueue %s\n", pthread_self(), fpath); // Debug print
+
             // Exit the critical section
             rc = pthread_mutex_unlock(&queue_mutex);
             if (rc != 0)
@@ -235,10 +238,11 @@ void scan_directory(const char *dir_path)
 void *thread_routine(void *bla)
 {
     path_t dir_path;
+    int rc;
     while (1)
     {
         // Enter the critical section
-        int rc = pthread_mutex_lock(&queue_mutex);
+        rc = pthread_mutex_lock(&queue_mutex);
         if (rc != 0)
         {
             printerr("pthread_mutex_lock() failed : %s\n", strerror(rc));
@@ -254,6 +258,11 @@ void *thread_routine(void *bla)
             {
                 is_finished = 1;                     // set true
                 pthread_cond_broadcast(&queue_cond); // Signal the other threads to exit
+
+                printf("Thread %lu : Announces the work has done\n", pthread_self()); // Debug print
+
+                // Exit the thread
+                pthread_mutex_unlock(&queue_mutex);
                 pthread_exit(THREAD_OK);
             }
 
@@ -263,6 +272,10 @@ void *thread_routine(void *bla)
             // Exit if finished work
             if (is_finished)
             {
+                printf("Thread %lu : Received the work has done\n", pthread_self()); // Debug print
+
+                // Exit the thread
+                pthread_mutex_unlock(&queue_mutex);
                 pthread_exit(THREAD_OK);
             }
         }
@@ -270,6 +283,8 @@ void *thread_routine(void *bla)
         // Thread wakes up - queue is non-empty
         active_threads++;
         dequeue(dir_path);
+
+        printf("Thread %lu : Dequeued %s\n", pthread_self(), dir_path); // Debug print
 
         // Exit the critical section
         rc = pthread_mutex_unlock(&queue_mutex);
@@ -358,7 +373,7 @@ int main(int argc, char *argv[])
     enqueue(root_dir);
     pthread_cond_signal(&queue_cond);
 
-    printf("Lets go!"); // Debug print
+    printf("Lets go!\n\n"); // Debug print
 
     pthread_mutex_unlock(&queue_mutex);
 
