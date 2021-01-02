@@ -478,7 +478,7 @@ def run_all_tests(timeout: int):
 
 def run(timeout_secs: int):
     logging.info("compiling...")
-    compiler = "gcc-5.3.0" if 'nova' in platform.node() else 'gcc'
+    compiler = "gcc-5.3.0"
     success, output = run_command(
         f"{compiler} -O3 -D_POSIX_C_SOURCE=200809 -Wall -std=c11 -pthread pfind.c -o {PFIND_EXEC}", timeout)
     if not success:
