@@ -90,12 +90,23 @@ void destroy_queue(void)
 }
 
 // ------------------------ Threads & Synchronization setup ---------------------
-unsigned int threads_amount; // Protected by a lock
 
-void my_thread_exit(void)
+#define THREAD_OK ((void *)0)
+#define THREAD_ERROR ((void *)1)
+
+pthread_mutex_t queue_mutex;
+pthread_cond_t queue_cond;
+
+unsigned int active_threads; // Protected by a queue_mutex lock
+int is_finished;             // Protected by a queue_mutex lock
+
+void err_thread_exit(void)
 {
-    threads_amount--;
-    pthread_exit(NULL);
+    pthread_mutex_lock(&queue_mutex);
+    active_threads--;
+    pthread_mutex_unlock(&queue_mutex);
+
+    pthread_exit(THREAD_ERROR);
 }
 
 // -------------------------- Main logic --------------------------------
@@ -120,7 +131,7 @@ file_type_t file_info(const char *path)
     int status = lstat(path, &stat_buf);
     if (status == -1)
     {
-        printerr("can't use lstat(%s) - %s\n", path, strerror(errno));
+        printerr("can't use lstat(%s) : %s\n", path, strerror(errno));
         // my_thread_exit()
         exit(1);
     }
@@ -151,7 +162,7 @@ void scan_directory(const char *dir_path)
     DIR *dirp = opendir(dir_path);
     if (dirp == NULL)
     {
-        printerr("can't use open_dir(%s) - %s\n", dir_path, strerror(errno));
+        printerr("can't use open_dir(%s) : %s\n", dir_path, strerror(errno));
         // my_thread_exit();
         exit(1);
     }
@@ -173,11 +184,31 @@ void scan_directory(const char *dir_path)
         // Get essential info on the file
         file_type_t ftype = file_info(fpath);
 
+        int rc;
         switch (ftype)
         {
         case SEARCHABLE_DIR:
-            // Put directory path in the queue
+
+            // Enter the critical section
+            rc = pthread_mutex_lock(&queue_mutex);
+            if (rc != 0)
+            {
+                printerr("pthread_mutex_lock() failed : %s\n", strerror(rc));
+                err_thread_exit();
+            }
+
+            // Put directory path in the queue, and send signal
             enqueue(fpath);
+            pthread_cond_signal(&queue_cond);
+
+            // Exit the critical section
+            rc = pthread_mutex_unlock(&queue_mutex);
+            if (rc != 0)
+            {
+                printerr("pthread_mutex_unlock() failed : %s\n", strerror(rc));
+                err_thread_exit();
+            }
+
             break;
 
         case UNSEARCHABLE_DIR:
@@ -198,8 +229,67 @@ void scan_directory(const char *dir_path)
     closedir(dirp);
 }
 
+/**
+ * Threads lunch function
+ */
+void *thread_routine(void *bla)
+{
+    path_t dir_path;
+    while (1)
+    {
+        // Enter the critical section
+        int rc = pthread_mutex_lock(&queue_mutex);
+        if (rc != 0)
+        {
+            printerr("pthread_mutex_lock() failed : %s\n", strerror(rc));
+            err_thread_exit();
+        }
+
+        // Thread goes to sleep if queue is empty
+        active_threads--;
+        while (is_empty_queue())
+        {
+            // Notify if finished work
+            if (active_threads == 0)
+            {
+                is_finished = 1;                     // set true
+                pthread_cond_broadcast(&queue_cond); // Signal the other threads to exit
+                pthread_exit(THREAD_OK);
+            }
+
+            // Wait for signal
+            pthread_cond_wait(&queue_cond, &queue_mutex);
+
+            // Exit if finished work
+            if (is_finished)
+            {
+                pthread_exit(THREAD_OK);
+            }
+        }
+
+        // Thread wakes up - queue is non-empty
+        active_threads++;
+        dequeue(dir_path);
+
+        // Exit the critical section
+        rc = pthread_mutex_unlock(&queue_mutex);
+        if (rc != 0)
+        {
+            printerr("pthread_mutex_unlock() failed : %s\n", strerror(rc));
+            err_thread_exit();
+        }
+
+        // Scans the directory
+        scan_directory(dir_path);
+    }
+
+    return NULL;
+}
+
 int main(int argc, char *argv[])
 {
+    int rc;
+
     // Validate arguments
     if (argc != 4)
     {
@@ -210,7 +300,7 @@ int main(int argc, char *argv[])
     // Extract arguments
     const char *root_dir = argv[1];
     search_term = argv[2];
-    threads_amount = atoi(argv[3]);
+    const unsigned int thread_amount = atoi(argv[3]);
 
     // Validates root directory
     if (access(root_dir, F_OK) != 0)
@@ -224,23 +314,77 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Initialize the queue
+    // --------------------- Prepare for launch -----------------------
+
+    active_threads = thread_amount;
+    is_finished = 0; // set false
+
+    // Allocate array
+    pthread_t *threads = (pthread_t *)calloc(thread_amount, sizeof(pthread_t));
+
+    // Initialize queue
     create_queue();
-    enqueue(root_dir);
 
-    while (!is_empty_queue())
+    // Initialize mutex
+    rc = pthread_mutex_init(&queue_mutex, NULL);
+    if (rc)
     {
-        // Take directory path from the queue
-        path_t dir_path;
-        dequeue(dir_path);
-
-        // Scans the directory
-        scan_directory(dir_path);
+        printerr("pthread_mutex_init() failed : %s\n", strerror(rc));
+        return 1;
     }
 
-    // Release resources
-    destroy_queue();
+    // Initialize condition variable
+    rc = pthread_cond_init(&queue_cond, NULL);
+    if (rc)
+    {
+        printerr("pthread_cond_init() failed : %s\n", strerror(rc));
+        return 1;
+    }
 
+    // -------------------- Launch threads -----------------------
+    for (int t = 0; t < thread_amount; t++)
+    {
+        rc = pthread_create(&threads[t], NULL, thread_routine, NULL);
+        if (rc)
+        {
+            printerr("pthread_create() #%d failed : %s\n", t, strerror(rc));
+            return 1;
+        }
+    }
+
+    // -------------------------- Starts scan --------------------------
+    pthread_mutex_lock(&queue_mutex);
+
+    enqueue(root_dir);
+    pthread_cond_signal(&queue_cond);
+
+    printf("Lets go!"); // Debug print
+
+    pthread_mutex_unlock(&queue_mutex);
+
+    // ------------------- Wait for threads to finish ------------------
+    void *status;
+    long err_threads = 0;
+    for (int t = 0; t < thread_amount; t++)
+    {
+        rc = pthread_join(threads[t], &status);
+        if (rc)
+        {
+            printerr("pthread_join() #%d failed : %s\n", t, strerror(rc));
+            return 1;
+        }
+        err_threads += (long)status;
+    }
+
+    // ------------- Release resources ------------------
+    destroy_queue();
+    free(threads);
+    pthread_cond_destroy(&queue_cond);
+    pthread_mutex_destroy(&queue_mutex);
+
+    // ----------------- Epilogue ---------------------
     printf("Done searching, found %d files\n", files_found);
-    return 0;
+
+    // If one of the threads has failed, than the exit code is 1
+    return (err_threads > 0) ? 1 : 0;
 }
