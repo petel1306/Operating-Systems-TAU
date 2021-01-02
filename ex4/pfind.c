@@ -8,7 +8,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <threads.h>
 #include <unistd.h>
 
 #define printerr(message, ...) fprintf(stderr, "Error : " message, ##__VA_ARGS__)
