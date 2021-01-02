@@ -133,8 +133,7 @@ file_type_t file_info(const char *path)
     if (status == -1)
     {
         printerr("can't use lstat(%s) : %s\n", path, strerror(errno));
-        // my_thread_exit()
-        exit(1);
+        err_thread_exit();
     }
 
     // Check if directory
@@ -164,8 +163,7 @@ void scan_directory(const char *dir_path)
     if (dirp == NULL)
     {
         printerr("can't use open_dir(%s) : %s\n", dir_path, strerror(errno));
-        // my_thread_exit();
-        exit(1);
+        err_thread_exit();
     }
 
     struct dirent *file_entry;
