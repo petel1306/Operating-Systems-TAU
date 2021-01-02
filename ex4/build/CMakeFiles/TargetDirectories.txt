@@ -1,3 +1,0 @@
-/home/ori/os_project/ex4/build/CMakeFiles/rebuild_cache.dir
-/home/ori/os_project/ex4/build/CMakeFiles/edit_cache.dir
-/home/ori/os_project/ex4/build/CMakeFiles/pfind.dir
