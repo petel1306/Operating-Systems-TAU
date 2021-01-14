@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     }
 
     uint32_t file_size = (uint32_t)sb.st_size;
-    printf("file size is %u\n", file_size); // Debug
+    // printf("file size is %u\n", file_size); // Debug
 
     char *const file_buf = (char *)mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, filefd, 0);
     if (file_buf == MAP_FAILED)
