@@ -3,17 +3,29 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
+    // "configurations": [
+    //     {
+    //         "type": "lldb",
+    //         "request": "launch",
+    //         "name": "Debug",
+    //         "program": "${workspaceFolder}/build/random_generator",
+    //         "args": [
+    //             "100",
+    //             "../rand.txt"
+    //         ],
+    //         "cwd": "${workspaceFolder}/build"
+    //     }
+    // ]
     "configurations": [
         {
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/random_generator",
+            "program": "${workspaceFolder}/build/pcc_server",
             "args": [
-                "./rand.txt",
-                "100"
+                "5555"
             ],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}/build"
         }
     ]
 }

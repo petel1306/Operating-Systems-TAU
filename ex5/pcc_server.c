@@ -131,13 +131,14 @@ int main(int argc, char *argv[])
         nsent = read(connfd, &file_size_net, SIZE_BOUND);
         if (nsent != SIZE_BOUND)
         {
-            perror("Receive failed");
-            if (is_client_problem())
+            if (nsent != -1 || is_client_problem())
             {
+                fprintf(stderr, "Client don't follow the protocol\n");
                 goto finish_loop2;
             }
             else
             {
+                perror("Receive failed");
                 return 1;
             }
         }
@@ -190,10 +191,10 @@ int main(int argc, char *argv[])
             if (32 <= c && c <= 126)
             {
                 printable_chars++;
-            }
 
-            // Add to pcc total
-            pcc_total[c]++;
+                // Add to pcc total
+                pcc_total[c]++;
+            }
         }
 
         // Sending the number of printable characters

@@ -59,11 +59,11 @@ int main(int argc, char *argv[])
     }
 
     // Debug
-    for (int i = 0; i < file_size; i++)
-    {
-        printf("%c", file_buf[i]);
-    }
-    printf("\n");
+    // for (int i = 0; i < file_size; i++)
+    // {
+    //     printf("%c", file_buf[i]);
+    // }
+    // printf("\n");
 
     // ============= Connecting to the server ====================
 
@@ -81,13 +81,13 @@ int main(int argc, char *argv[])
     }
 
     // Debug
-    struct sockaddr_in my_addr;   // where we actually connected through
-    struct sockaddr_in peer_addr; // where we actually connected to
-    getsockname(sockfd, (struct sockaddr *)&my_addr, &addrsize);
-    getpeername(sockfd, (struct sockaddr *)&peer_addr, &addrsize);
-    printf("Client: Connected. \n\t\tSource IP: %s Source Port: %d\n\t\tTarget IP: %s Target Port: %d\n",
-           inet_ntoa((my_addr.sin_addr)), ntohs(my_addr.sin_port), inet_ntoa((peer_addr.sin_addr)),
-           ntohs(peer_addr.sin_port));
+    // struct sockaddr_in my_addr;   // where we actually connected through
+    // struct sockaddr_in peer_addr; // where we actually connected to
+    // getsockname(sockfd, (struct sockaddr *)&my_addr, &addrsize);
+    // getpeername(sockfd, (struct sockaddr *)&peer_addr, &addrsize);
+    // printf("Client: Connected. \n\t\tSource IP: %s Source Port: %d\n\t\tTarget IP: %s Target Port: %d\n",
+    //        inet_ntoa((my_addr.sin_addr)), ntohs(my_addr.sin_port), inet_ntoa((peer_addr.sin_addr)),
+    //        ntohs(peer_addr.sin_port));
 
     // =============== Communicating with the server ==================
     int nsent;
