@@ -55,6 +55,7 @@ int main(int argc, char *argv[])
     if (file_buf == MAP_FAILED)
     {
         perror("Memory allocation failed");
+        return 1;
     }
 
     // Debug
@@ -66,8 +67,8 @@ int main(int argc, char *argv[])
 
     // ============= Connecting to the server ====================
 
-    int sockfd;
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd == -1)
     {
         perror("Could not create socket");
         return 1;
@@ -120,7 +121,7 @@ int main(int argc, char *argv[])
     nsent = read(sockfd, &printable_chars_net, SIZE_BOUND);
     if (nsent != SIZE_BOUND)
     {
-        perror("Send failed");
+        perror("Receive failed");
         return 1;
     }
     uint32_t printable_chars = ntohl(printable_chars_net);
