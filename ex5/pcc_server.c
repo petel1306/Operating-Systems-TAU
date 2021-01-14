@@ -1,6 +1,4 @@
 #include <arpa/inet.h>
-#include <asm-generic/errno-base.h>
-#include <asm-generic/errno.h>
 #include <assert.h>
 #include <errno.h>
 #include <netinet/in.h>
@@ -18,7 +16,7 @@
 #define CHAR_AMOUNT (1 << 8)
 uint32_t pcc_total[CHAR_AMOUNT];
 int listenfd;
-unsigned int is_interrupted = 0;
+volatile sig_atomic_t is_interrupted = 0; // Indicates if the program got SIGINT
 
 const size_t SIZE_BOUND = sizeof(u_int32_t);
 socklen_t addrsize = sizeof(struct sockaddr_in);
