@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
         }
 
         // Turning off system calls restartable for a valid accept functionality
-        sa.sa_flags = sa.sa_flags & (!SA_RESTART);
+        sa.sa_flags = sa.sa_flags & (~SA_RESTART);
         sigaction(SIGINT, &sa, NULL);
 
         int connfd = accept(listenfd, (struct sockaddr *)&peer_addr, &addrsize);
