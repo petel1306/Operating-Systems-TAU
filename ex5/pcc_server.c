@@ -33,7 +33,7 @@ void epilogue(void)
     close(listenfd);
 
     // Print the statistics
-    for (char c = 32; c <= 126; c++)
+    for (int c = 32; c <= 126; c++)
     {
         printf("char '%c' : %u times\n", c, pcc_total[c]);
     }
@@ -144,9 +144,8 @@ int main(int argc, char *argv[])
         const u_int32_t file_size = ntohl(file_size_net);
 
         // Allocating buffer to hold the file
-        char *const file_buf =
-            (char *)mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-        if (file_buf == MAP_FAILED)
+        char *const file_buf = (char *)malloc(file_size);
+        if (file_buf == NULL)
         {
             perror("Memory allocation failed");
             return 1;
@@ -183,10 +182,9 @@ int main(int argc, char *argv[])
 
         // Processing the content of the file
         uint32_t printable_chars = 0;
-        char c;
         for (int i = 0; i < file_size; i++)
         {
-            c = file_buf[i];
+            int c = file_buf[i];
 
             // Check if printable
             if (32 <= c && c <= 126)
@@ -202,9 +200,9 @@ int main(int argc, char *argv[])
         uint32_t printable_chars_net = htonl(printable_chars);
         nsent = write(connfd, &printable_chars_net, SIZE_BOUND);
 
-    finish_loop1:                    // ***After allocation was done
-        munmap(file_buf, file_size); // Free the addresses
-    finish_loop2:                    // ***After connection was created
-        close(connfd);               // Close the connection
+    finish_loop1:       // ***After allocation was done
+        free(file_buf); // Free the addresses
+    finish_loop2:       // ***After connection was created
+        close(connfd);  // Close the connection
     }
 }
