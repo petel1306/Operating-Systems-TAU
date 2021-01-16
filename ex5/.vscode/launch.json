@@ -16,14 +16,28 @@
     //         "cwd": "${workspaceFolder}/build"
     //     }
     // ]
+    // "configurations": [
+    //     {
+    //         "type": "lldb",
+    //         "request": "launch",
+    //         "name": "Debug",
+    //         "program": "${workspaceFolder}/build/pcc_server",
+    //         "args": [
+    //             "5555"
+    //         ],
+    //         "cwd": "${workspaceFolder}/build"
+    //     }
+    // ]
     "configurations": [
         {
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/build/pcc_server",
+            "program": "${workspaceFolder}/build/pcc_client",
             "args": [
-                "5555"
+                "127.0.0.1",
+                "5555",
+                "../abc.txt"
             ],
             "cwd": "${workspaceFolder}/build"
         }
